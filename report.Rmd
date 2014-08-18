@@ -1,0 +1,70 @@
+Classifying Proper Exercise From Sensory ata
+========================================================
+
+## Synopsis
+Correct form is critical for reducing the risk of injury from exercises that use weights. An injury can negatively impact further training and led to less physical fitness and well-being. Using sensorory data provided from a Microsoft Xbox connect we can classify whether a subject is correctly performing an exercise and classify the specific mistake if the repitition is not correct.
+
+```{r echo=TRUE}
+library(ggplot2)
+suppressMessages(library(caret))
+library(ggplot2); library(caret)
+# set R so that scientific notation less likely
+options(scipen = 5)
+```
+```{r echo=FALSE}
+### set work directory based on the machine I am using
+if (file.exists("F:/machine_learning/assignments/ml_project"))  {
+  setwd("f:/machine_learning/assignments/ml_project")
+} else if (file.exists("E:/machine_learning/assignments/ml_project")){
+  setwd("e:/machine_learning/assignments/ml_project")
+} else {
+  stop("no directory")
+}
+```
+
+
+## Data Processing
+### Read in the data from the original bz2 file
+```{r echo=TRUE,cache=TRUE}
+### Data Manipulation
+# read the data
+pml <- read.csv("./raw_data/pml-training.csv",stringsAsFactors=FALSE)
+```
+
+```{r echo=TRUE}
+# eliminate variables with low variability 
+# using the nearZeroVar function of the caret package
+nz <- nearZeroVar(pml)
+pml <- pml[,-nz]
+
+# get rid of columns that are mostly NA
+pml <- pml[,colSums(is.na(pml))/nrow(pml)<.9]
+
+# get rid of user name and time related variables
+pml <- pml[,-c(1:6)]
+
+# make classe a factor variable
+pml$classe <- factor(pml$classe)
+
+# split data into training and test sets
+set.seed(77)
+inTrain <- createDataPartition(y=pml$classe,p=0.6, list=FALSE)
+training <- pml[inTrain,]
+testing <- pml[-inTrain,]
+```
+
+## Results
+### Summarize and reshape data for reporting and chart creation
+```{r }
+```
+
+## Summary
+```{r tornado_location_plot,fig.width=8, fig.height=6}
+                                ,data = df) + xlab("") + ylab("")
+```
+
+
+# References
+1. Velloso, E.; Bulling, A.; Gellersen, H.; Ugulino, W.; Fuks, H. Qualitative Activity Recognition of Weight Lifting Exercises. Proceedings of 4th International Conference in Cooperation with SIGCHI (Augmented Human '13) . Stuttgart, Germany: ACM SIGCHI, 2013.
+2. Kuhn, Max Building Predictive Models in R Using the caret Package. Journal of Statistical Software. Vol. 28. November 2008.
+3. Breiman, L; Cutler, A; Random Forests. http://www.stat.berkeley.edu/~breiman/RandomForests/cc_home.htm
