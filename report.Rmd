@@ -1,13 +1,13 @@
-Classifying Proper Exercise From Sensory ata
+Classifying Proper Exercise From Sensory Data
 ========================================================
 
 ## Synopsis
-Correct form is critical for reducing the risk of injury from exercises that use weights. An injury can negatively impact further training and led to less physical fitness and well-being. Using sensorory data provided from a Microsoft Xbox connect we can classify whether a subject is correctly performing an exercise and classify the specific mistake if the repitition is not correct.
+Correct form is critical for reducing the risk of injury from exercises that use weights. An injury can negatively impact further training and led to less physical fitness and well-being. Using sensorory data provided from a Microsoft Xbox connect we can classify whether a subject is correctly performing an exercise and classify the specific mistake if the repitition is not correct.[1]
 
 ```{r echo=TRUE}
 library(ggplot2)
 suppressMessages(library(caret))
-library(ggplot2); library(caret)
+suppressMessages(library(randomForest))
 # set R so that scientific notation less likely
 options(scipen = 5)
 ```
@@ -24,13 +24,12 @@ if (file.exists("F:/machine_learning/assignments/ml_project"))  {
 
 
 ## Data Processing
-### Read in the data from the original bz2 file
+Read in the data from the original csv file
 ```{r echo=TRUE,cache=TRUE}
-### Data Manipulation
 # read the data
 pml <- read.csv("./raw_data/pml-training.csv",stringsAsFactors=FALSE)
 ```
-
+We use the nearZeroVar function from the caret package to eliminat variables that have low variability. These low variability predictors can cause some models to fail so we eliminate them before we start our model building. [2] We also elimnate some variables that are predominately NA. Finally we drop some variables related to time and user name. We are left with 52 predictors  and the dependent variable of classe.
 ```{r echo=TRUE}
 # eliminate variables with low variability 
 # using the nearZeroVar function of the caret package
@@ -45,7 +44,10 @@ pml <- pml[,-c(1:6)]
 
 # make classe a factor variable
 pml$classe <- factor(pml$classe)
+```
 
+Even though developers of the Random Forest algorithm say cross-validation is not necessary, we split the data into a training and testing (validation) sets. [3]
+```{r echo=TRUE}
 # split data into training and test sets
 set.seed(77)
 inTrain <- createDataPartition(y=pml$classe,p=0.6, list=FALSE)
@@ -53,18 +55,29 @@ training <- pml[inTrain,]
 testing <- pml[-inTrain,]
 ```
 
-## Results
+## Model Selection and Results
 ### Summarize and reshape data for reporting and chart creation
+The Random Forest classification method was chosen because it provided the best accuracy of any method I tried. I also tried K Nearest Neighbor and a tree method using the rpart package. The accuracy of the Random Foreest was very good with an accuracy rate of over 99% correct predictions on the testing data that was held out of the original dataset.
 ```{r }
+rf.fit <- randomForest(classe ~., data=training,type="class")
+rfpred <- predict(rf.fit,newdata=testing)
+rf.fit
+rf.table <- table(rfpred,testing$classe)
+confusionMatrix(rf.table)
 ```
 
 ## Summary
-```{r tornado_location_plot,fig.width=8, fig.height=6}
-                                ,data = df) + xlab("") + ylab("")
+Using the Random Forest method we were able to accurately classify the bicep curl exercise provding valuable insite for someone performing this exercise.
+
+## Appendix
+```{r Important Variables,fig.width=8, fig.height=6}
+varImpPlot(rf.fit)
 ```
+
+__Figure 1__ plots the variable importance for the Random Forest model.
 
 
 # References
 1. Velloso, E.; Bulling, A.; Gellersen, H.; Ugulino, W.; Fuks, H. Qualitative Activity Recognition of Weight Lifting Exercises. Proceedings of 4th International Conference in Cooperation with SIGCHI (Augmented Human '13) . Stuttgart, Germany: ACM SIGCHI, 2013.
-2. Kuhn, Max Building Predictive Models in R Using the caret Package. Journal of Statistical Software. Vol. 28. November 2008.
+2. Kuhn, Max. Building Predictive Models in R Using the caret Package. Journal of Statistical Software. Vol. 28. November 2008.
 3. Breiman, L; Cutler, A; Random Forests. http://www.stat.berkeley.edu/~breiman/RandomForests/cc_home.htm
