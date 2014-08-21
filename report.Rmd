@@ -2,7 +2,7 @@ Classifying Proper Exercise From Sensory Data
 ========================================================
 
 ## Synopsis
-Correct form is critical for reducing the risk of injury from exercises that use weights. An injury can negatively impact further training and led to less physical fitness and well-being. Using sensorory data provided from a Microsoft Xbox connect we can classify whether a subject is correctly performing an exercise and classify the specific mistake if the repitition is not correct.[1]
+Correct form is critical for reducing the risk of injury from weight-lifting exercises. An injury can negatively impact further training and led to less physical fitness and well-being. The ability to provide the user feedback on the correctness of their form during an exercise would provide a major benefit to a user. Using sensory data provided from a Microsoft Xbox connect we can classify whether a subject is correctly performing an exercise and classify the specific mistake if the repetition is not correct.[1] After data munging and  exploratory analysis I was able to build a model that provides very good prediction accuracy.
 
 ```{r echo=TRUE}
 library(ggplot2)
@@ -29,7 +29,7 @@ Read in the data from the original csv file
 # read the data
 pml <- read.csv("./raw_data/pml-training.csv",stringsAsFactors=FALSE)
 ```
-We use the nearZeroVar function from the caret package to eliminat variables that have low variability. These low variability predictors can cause some models to fail so we eliminate them before we start our model building. [2] We also elimnate some variables that are predominately NA. Finally we drop some variables related to time and user name. We are left with 52 predictors  and the dependent variable of classe.
+We use the nearZeroVar function from the caret package to eliminate variables that have low variability. These low variability predictors can cause some models to fail so we eliminate them before we start our model building. [2] We also eliminate some variables that are predominately NA and missing values. Finally we drop some variables related to time and user name. We are left with 52 predictors and the dependent variable of classe.
 ```{r echo=TRUE}
 # eliminate variables with low variability 
 # using the nearZeroVar function of the caret package
@@ -56,18 +56,26 @@ testing <- pml[-inTrain,]
 ```
 
 ## Model Selection and Results
-### Summarize and reshape data for reporting and chart creation
-The Random Forest classification method was chosen because it provided the best accuracy of any method I tried. I also tried K Nearest Neighbor and a tree method using the rpart package. The accuracy of the Random Foreest was very good with an accuracy rate of over 99% correct predictions on the testing data that was held out of the original dataset.
+The Random Forest classification method was chosen because it provided the best accuracy of any method I tried. I also tried K Nearest Neighbor and a tree model using the rpart package. The accuracy of the Random Foreest was very good with an accuracy rate of over 99% correct predictions on the testing data that was held out of the original dataset. As the contingency table/ confusion matrix show the model performs as well on the testing data as the training data. The plot for variable important is shown in figure 1 of the appendix.
 ```{r }
 rf.fit <- randomForest(classe ~., data=training,type="class")
 rfpred <- predict(rf.fit,newdata=testing)
 rf.fit
 rf.table <- table(rfpred,testing$classe)
+```
+
+Contingency Table for Training
+```{r}
+confusionMatrix(table(rf.fit$predicted,training$classe))
+```
+
+Contingency Table for Testing
+```{r}
 confusionMatrix(rf.table)
 ```
 
 ## Summary
-Using the Random Forest method we were able to accurately classify the bicep curl exercise provding valuable insite for someone performing this exercise.
+Using the Random Forest method we were able to accurately classify the bicep curl exercise providing valuable insight for someone performing this exercise. As mentioned previously accuracy was over 99% for both training and testing data.
 
 ## Appendix
 ```{r Important Variables,fig.width=8, fig.height=6}

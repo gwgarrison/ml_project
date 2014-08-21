@@ -57,7 +57,7 @@ if (window.hljs && document.readyState && document.readyState === "complete") {
 <h1>Classifying Proper Exercise From Sensory Data</h1>
 <div id="synopsis" class="section level2">
 <h2>Synopsis</h2>
-<p>Correct form is critical for reducing the risk of injury from exercises that use weights. An injury can negatively impact further training and led to less physical fitness and well-being. Using sensorory data provided from a Microsoft Xbox connect we can classify whether a subject is correctly performing an exercise and classify the specific mistake if the repitition is not correct.[1]</p>
+<p>Correct form is critical for reducing the risk of injury from weight-lifting exercises. An injury can negatively impact further training and led to less physical fitness and well-being. The ability to provide the user feedback on the correctness of their form during an exercise would provide a major benefit to a user. Using sensory data provided from a Microsoft Xbox connect we can classify whether a subject is correctly performing an exercise and classify the specific mistake if the repetition is not correct.[1] After data munging and exploratory analysis I was able to build a model that provides very good prediction accuracy.</p>
 <pre class="r"><code>library(ggplot2)
 suppressMessages(library(caret))
 suppressMessages(library(randomForest))
@@ -69,7 +69,7 @@ options(scipen = 5)</code></pre>
 <p>Read in the data from the original csv file</p>
 <pre class="r"><code># read the data
 pml &lt;- read.csv(&quot;./raw_data/pml-training.csv&quot;,stringsAsFactors=FALSE)</code></pre>
-<p>We use the nearZeroVar function from the caret package to eliminat variables that have low variability. These low variability predictors can cause some models to fail so we eliminate them before we start our model building. [2] We also elimnate some variables that are predominately NA. Finally we drop some variables related to time and user name. We are left with 52 predictors and the dependent variable of classe.</p>
+<p>We use the nearZeroVar function from the caret package to eliminate variables that have low variability. These low variability predictors can cause some models to fail so we eliminate them before we start our model building. [2] We also eliminate some variables that are predominately NA and missing values. Finally we drop some variables related to time and user name. We are left with 52 predictors and the dependent variable of classe.</p>
 <pre class="r"><code># eliminate variables with low variability 
 # using the nearZeroVar function of the caret package
 nz &lt;- nearZeroVar(pml)
@@ -92,9 +92,7 @@ testing &lt;- pml[-inTrain,]</code></pre>
 </div>
 <div id="model-selection-and-results" class="section level2">
 <h2>Model Selection and Results</h2>
-<div id="summarize-and-reshape-data-for-reporting-and-chart-creation" class="section level3">
-<h3>Summarize and reshape data for reporting and chart creation</h3>
-<p>The Random Forest classification method was chosen because it provided the best accuracy of any method I tried. I also tried K Nearest Neighbor and a tree method using the rpart package. The accuracy of the Random Foreest was very good with an accuracy rate of over 99% correct predictions on the testing data that was held out of the original dataset.</p>
+<p>The Random Forest classification method was chosen because it provided the best accuracy of any method I tried. I also tried K Nearest Neighbor and a tree model using the rpart package. The accuracy of the Random Foreest was very good with an accuracy rate of over 99% correct predictions on the testing data that was held out of the original dataset. As the contingency table/ confusion matrix show the model performs as well on the testing data as the training data. The plot for variable important is shown in figure 1 of the appendix.</p>
 <pre class="r"><code>rf.fit &lt;- randomForest(classe ~., data=training,type=&quot;class&quot;)
 rfpred &lt;- predict(rf.fit,newdata=testing)
 rf.fit</code></pre>
@@ -113,8 +111,42 @@ rf.fit</code></pre>
 ## C    0   12 2040    2    0    0.006816
 ## D    0    0   20 1908    2    0.011399
 ## E    0    0    3    4 2158    0.003233</code></pre>
-<pre class="r"><code>rf.table &lt;- table(rfpred,testing$classe)
-confusionMatrix(rf.table)</code></pre>
+<pre class="r"><code>rf.table &lt;- table(rfpred,testing$classe)</code></pre>
+<p>Contingency Table for Training</p>
+<pre class="r"><code>confusionMatrix(table(rf.fit$predicted,training$classe))</code></pre>
+<pre><code>## Confusion Matrix and Statistics
+## 
+##    
+##        A    B    C    D    E
+##   A 3344   12    0    0    0
+##   B    2 2263   12    0    0
+##   C    1    4 2040   20    3
+##   D    0    0    2 1908    4
+##   E    1    0    0    2 2158
+## 
+## Overall Statistics
+##                                         
+##                Accuracy : 0.995         
+##                  95% CI : (0.993, 0.996)
+##     No Information Rate : 0.284         
+##     P-Value [Acc &gt; NIR] : &lt;2e-16        
+##                                         
+##                   Kappa : 0.993         
+##  Mcnemar's Test P-Value : NA            
+## 
+## Statistics by Class:
+## 
+##                      Class: A Class: B Class: C Class: D Class: E
+## Sensitivity             0.999    0.993    0.993    0.989    0.997
+## Specificity             0.999    0.999    0.997    0.999    1.000
+## Pos Pred Value          0.996    0.994    0.986    0.997    0.999
+## Neg Pred Value          1.000    0.998    0.999    0.998    0.999
+## Prevalence              0.284    0.194    0.174    0.164    0.184
+## Detection Rate          0.284    0.192    0.173    0.162    0.183
+## Detection Prevalence    0.285    0.193    0.176    0.163    0.184
+## Balanced Accuracy       0.999    0.996    0.995    0.994    0.998</code></pre>
+<p>Contingency Table for Testing</p>
+<pre class="r"><code>confusionMatrix(rf.table)</code></pre>
 <pre><code>## Confusion Matrix and Statistics
 ## 
 ##       
@@ -147,10 +179,9 @@ confusionMatrix(rf.table)</code></pre>
 ## Detection Prevalence    0.285    0.193    0.175    0.164    0.183
 ## Balanced Accuracy       1.000    0.997    0.996    0.996    0.998</code></pre>
 </div>
-</div>
 <div id="summary" class="section level2">
 <h2>Summary</h2>
-<p>Using the Random Forest method we were able to accurately classify the bicep curl exercise provding valuable insite for someone performing this exercise.</p>
+<p>Using the Random Forest method we were able to accurately classify the bicep curl exercise providing valuable insight for someone performing this exercise. As mentioned previously accuracy was over 99% for both training and testing data.</p>
 </div>
 <div id="appendix" class="section level2">
 <h2>Appendix</h2>
