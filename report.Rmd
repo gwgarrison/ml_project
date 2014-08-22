@@ -2,7 +2,7 @@ Classifying Proper Exercise From Sensory Data
 ========================================================
 
 ## Synopsis
-Correct form is critical for reducing the risk of injury from weight-lifting exercises. An injury can negatively impact further training and led to less physical fitness and well-being. The ability to provide the user feedback on the correctness of their form during an exercise would provide a major benefit to a user. Using sensory data provided from a Microsoft Xbox connect we can classify whether a subject is correctly performing an exercise and classify the specific mistake if the repetition is not correct.[1] After data munging and  exploratory analysis I was able to build a model that provides very good prediction accuracy.
+The number of weight training injuries is large and increasing. In the United States alone there were 970,000 weight training related injuries treated in hospitals from 1990 to 2007.[1] Correct form is critical for reducing the risk of injury from weight-lifting exercises. An injury can negatively impact further training and led to less physical fitness and well-being. The ability to provide the user feedback on the correctness of their form during an exercise would provide a major benefit to a user. Using sensory data provided from a Microsoft Xbox connect we can classify whether a subject is correctly performing an exercise and classify the specific mistake if the repetition is not correct.[2] After data munging and  exploratory analysis I was able to build a model that provides very good prediction accuracy.
 
 ```{r echo=TRUE}
 library(ggplot2)
@@ -29,7 +29,7 @@ Read in the data from the original csv file
 # read the data
 pml <- read.csv("./raw_data/pml-training.csv",stringsAsFactors=FALSE)
 ```
-We use the nearZeroVar function from the caret package to eliminate variables that have low variability. These low variability predictors can cause some models to fail so we eliminate them before we start our model building. [2] We also eliminate some variables that are predominately NA and missing values. Finally we drop some variables related to time and user name. We are left with 52 predictors and the dependent variable of classe.
+We use the nearZeroVar function from the caret package to eliminate variables that have low variability. These low variability predictors can cause some models to fail so we eliminate them before we start our model building. [3] We also eliminate some variables that are predominately NA and missing values. Finally we drop some variables related to time and user name. We are left with 52 predictors and the dependent variable of classe.
 ```{r echo=TRUE}
 # eliminate variables with low variability 
 # using the nearZeroVar function of the caret package
@@ -46,7 +46,7 @@ pml <- pml[,-c(1:6)]
 pml$classe <- factor(pml$classe)
 ```
 
-Even though developers of the Random Forest algorithm say cross-validation is not necessary, we split the data into a training and testing (validation) sets. [3]
+Even though developers of the Random Forest algorithm say cross-validation is not necessary, we split the data into a training and testing (validation) sets. [4]
 ```{r echo=TRUE}
 # split data into training and test sets
 set.seed(77)
@@ -58,6 +58,7 @@ testing <- pml[-inTrain,]
 ## Model Selection and Results
 The Random Forest classification method was chosen because it provided the best accuracy of any method I tried. I also tried K Nearest Neighbor and a tree model using the rpart package. The accuracy of the Random Foreest was very good with an accuracy rate of over 99% correct predictions on the testing data that was held out of the original dataset. As the contingency table/ confusion matrix show the model performs as well on the testing data as the training data. The plot for variable important is shown in figure 1 of the appendix.
 ```{r }
+set.seed(77)
 rf.fit <- randomForest(classe ~., data=training,type="class")
 rfpred <- predict(rf.fit,newdata=testing)
 rf.fit
@@ -86,6 +87,7 @@ __Figure 1__ plots the variable importance for the Random Forest model.
 
 
 # References
-1. Velloso, E.; Bulling, A.; Gellersen, H.; Ugulino, W.; Fuks, H. Qualitative Activity Recognition of Weight Lifting Exercises. Proceedings of 4th International Conference in Cooperation with SIGCHI (Augmented Human '13) . Stuttgart, Germany: ACM SIGCHI, 2013.
-2. Kuhn, Max. Building Predictive Models in R Using the caret Package. Journal of Statistical Software. Vol. 28. November 2008.
-3. Breiman, L; Cutler, A; Random Forests. http://www.stat.berkeley.edu/~breiman/RandomForests/cc_home.htm
+1. Science Daily. Weight training-related injuries increasing. Download 8/22/2014 from http://www.sciencedaily.com/releases/2010/03/100330115925.htm
+2. Velloso, E.; Bulling, A.; Gellersen, H.; Ugulino, W.; Fuks, H. Qualitative Activity Recognition of Weight Lifting Exercises. Proceedings of 4th International Conference in Cooperation with SIGCHI (Augmented Human '13) . Stuttgart, Germany: ACM SIGCHI, 2013.
+3. Kuhn, Max. Building Predictive Models in R Using the caret Package. Journal of Statistical Software. Vol. 28. November 2008.
+4. Breiman, L; Cutler, A; Random Forests. http://www.stat.berkeley.edu/~breiman/RandomForests/cc_home.htm
